@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core'
-import { FormControl, FormGroup, Validators } from '@angular/forms'
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms'
+import { MyValidators } from './my.validators'
 
 @Component({
   selector: 'app-root',
@@ -12,12 +13,13 @@ export class AppComponent implements OnInit{
 
   ngOnInit(): void {
     this.form = new FormGroup({
-      email: new FormControl('', [Validators.email, Validators.required]),
+      email: new FormControl('', [Validators.email, Validators.required, MyValidators.restrictedEmails]),
       password: new FormControl(null, [Validators.required, Validators.minLength(5)]),
       adress: new FormGroup({
         country: new FormControl('ua'),
         city: new FormControl('', Validators.required)
-      })
+      }),
+      skills: new FormArray([])
     })
   }
 
@@ -27,6 +29,8 @@ export class AppComponent implements OnInit{
       const formData = {...this.form.value}
 
       console.log(`form data: `, formData)
+
+      this.form.reset()
     }
     
   }
@@ -38,14 +42,21 @@ export class AppComponent implements OnInit{
       pl: "Warsaw"
     }
 
-    const adress: FormControl = this.form.get('adress')
-    const cityKey: FormControl = adress.get('country')
-    const value = cityKey?.value
-    console.log(cityMap?[value]: '')
-    //const city = cityMap?[cityKey]
+    const adress = this.form.get('adress') as FormGroup
+    const country = adress.get('country') as FormControl
+    const countryCode: keyof typeof cityMap = country.value
+    const city = cityMap[countryCode]
 
-    //console.log(city)
-    //this.form.patchValue({adress: {city}})
+    this.form.patchValue({adress: {city}})
+  }
+
+  addSkill() {
+    const control = new FormControl('', Validators.required);
+    //<FormArray>this.form.get('skills').push()
+    (this.form.get('skills') as FormArray).push(control)
+  }
+
+  getControls() {
+    return (this.form.get('skills') as FormArray).controls;
   }
 }
-
